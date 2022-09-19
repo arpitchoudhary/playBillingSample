@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         val productList: ImmutableList<Product> = ImmutableList.of( //Product 1
             Product.newBuilder()
-                .setProductId("toiplus1year")
+                .setProductId("yearly_plan")
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build(),  //Product 2
         )
@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun launchPurchaseFlow(productDetails: ProductDetails) {
+    private fun launchPurchaseFlow(productDetails: ProductDetails) {
         assert(productDetails.subscriptionOfferDetails != null)
         val productDetailsParamsList = ImmutableList.of(
             ProductDetailsParams.newBuilder()
