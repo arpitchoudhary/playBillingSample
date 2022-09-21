@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         val productList: ImmutableList<Product> = ImmutableList.of( //Product 1
             Product.newBuilder()
-                .setProductId("toiplus1year")
+                .setProductId("test_toiplus_subs")
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build(),  //Product 2
         )
@@ -78,18 +78,52 @@ class MainActivity : AppCompatActivity() {
 
     fun launchPurchaseFlow(productDetails: ProductDetails) {
         assert(productDetails.subscriptionOfferDetails != null)
-        val productDetailsParamsList = ImmutableList.of(
-            ProductDetailsParams.newBuilder()
-                .setProductDetails(productDetails)
-                .setOfferToken(productDetails.subscriptionOfferDetails!![0].offerToken)
-                .build()
-        )
+        billingClient!!.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()
+        ) { billingResult: BillingResult, list: List<Purchase> ->
+            Log.d("NOTEPAD", ": queryPurchasesAsync")
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                for (purchase in list) {
+                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                        val productDetailsParamsList = ImmutableList.of(
+                            ProductDetailsParams.newBuilder()
+                                .setProductDetails(productDetails)
+                                .setOfferToken(productDetails.subscriptionOfferDetails!![0].offerToken)
+                                .build()
 
-        val billingFlowParams = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(productDetailsParamsList)
-            .build()
-        billingClient!!.launchBillingFlow(this, billingFlowParams)
+                        )
+                        val subscriptionUpdateParamsList =
+                            BillingFlowParams.SubscriptionUpdateParams.newBuilder()
+                                .setOldSkuPurchaseToken(purchase.purchaseToken)
+                                .setReplaceSkusProrationMode(BillingFlowParams.ProrationMode.DEFERRED)
+                                .build()
+
+                        val billingFlowParams = BillingFlowParams.newBuilder()
+                            .setProductDetailsParamsList(productDetailsParamsList)
+                            .setSubscriptionUpdateParams(subscriptionUpdateParamsList)
+                            .build()
+                        billingClient!!.launchBillingFlow(this, billingFlowParams)
+                        Log.d("NOTEPAD", ": ${purchase} ")
+                    }
+                }
+            }
+        }
     }
+
+//    fun launchPurchaseFlow(productDetails: ProductDetails) {
+//        assert(productDetails.subscriptionOfferDetails != null)
+//        val productDetailsParamsList = ImmutableList.of(
+//            ProductDetailsParams.newBuilder()
+//                .setProductDetails(productDetails)
+//                .setOfferToken(productDetails.subscriptionOfferDetails!![0].offerToken)
+//                .build()
+//        )
+//
+//        val billingFlowParams = BillingFlowParams.newBuilder()
+//            .setProductDetailsParamsList(productDetailsParamsList)
+//            .build()
+//        billingClient!!.launchBillingFlow(this, billingFlowParams)
+//    }
 
     override fun onResume() {
         super.onResume()
