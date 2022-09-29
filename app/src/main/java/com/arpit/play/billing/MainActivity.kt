@@ -72,11 +72,11 @@ class MainActivity : AppCompatActivity() {
             // Process the result
             val d = prodDetailsList[0]
             Log.d("NOTEPAD", ": ${d}")
-            launchPurchaseFlow(d)
+            launchPurchaseFlow1(d)
         }
     }
 
-    fun launchPurchaseFlow(productDetails: ProductDetails) {
+    fun launchPurchaseFlow1(productDetails: ProductDetails) {
         assert(productDetails.subscriptionOfferDetails != null)
         billingClient!!.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()
@@ -110,20 +110,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    fun launchPurchaseFlow(productDetails: ProductDetails) {
-//        assert(productDetails.subscriptionOfferDetails != null)
-//        val productDetailsParamsList = ImmutableList.of(
-//            ProductDetailsParams.newBuilder()
-//                .setProductDetails(productDetails)
-//                .setOfferToken(productDetails.subscriptionOfferDetails!![0].offerToken)
-//                .build()
-//        )
-//
-//        val billingFlowParams = BillingFlowParams.newBuilder()
-//            .setProductDetailsParamsList(productDetailsParamsList)
-//            .build()
-//        billingClient!!.launchBillingFlow(this, billingFlowParams)
-//    }
+    fun launchPurchaseFlow(productDetails: ProductDetails) {
+        assert(productDetails.subscriptionOfferDetails != null)
+        val productDetailsParamsList = ImmutableList.of(
+            ProductDetailsParams.newBuilder()
+                .setProductDetails(productDetails)
+                .setOfferToken(productDetails.subscriptionOfferDetails!![1].offerToken)
+                .build()
+        )
+
+        val billingFlowParams = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(productDetailsParamsList)
+            .build()
+        billingClient!!.launchBillingFlow(this, billingFlowParams)
+    }
 
     override fun onResume() {
         super.onResume()
