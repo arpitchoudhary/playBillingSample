@@ -23,11 +23,24 @@ class MainActivity : AppCompatActivity() {
                     for (purchase in list) {
                         Log.d("NOTEPAD", ": ${purchase.toString()}")
 //                        verifySubPurchase(purchase!!)
+                        handlePurchase(purchase!!)
                     }
                 }
             }.build()
 
         establishConnection()
+
+    }
+
+    private fun handlePurchase(purchase: Purchase) {
+        val consumeParams = ConsumeParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
+
+        billingClient!!.consumeAsync(consumeParams)
+        { billingResult, purchaseToken ->
+            Log.d("NOTEPAD", "${billingResult.responseCode}  " + billingResult.debugMessage + "")
+        }
     }
 
     fun establishConnection() {
@@ -56,11 +69,17 @@ class MainActivity : AppCompatActivity() {
     fun showProducts() {
         Log.d("NOTEPAD", ": showProducts")
 
-        val productList: ImmutableList<Product> = ImmutableList.of( //Product 1
+        val productList: ImmutableList<Product> = ImmutableList.of(
+            //Product 1
+//            Product.newBuilder()
+//                .setProductId("yearly_plan")
+//                .setProductType(BillingClient.ProductType.SUBS)
+//                .build(),
+
             Product.newBuilder()
-                .setProductId("yearly_plan")
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build(),  //Product 2
+                .setProductId("pps_plan")
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()//Product 2
         )
 
         val params = QueryProductDetailsParams.newBuilder()
@@ -68,7 +87,8 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         billingClient!!.queryProductDetailsAsync(
-            params) { billingResult: BillingResult?, prodDetailsList: List<ProductDetails> ->
+            params
+        ) { billingResult: BillingResult?, prodDetailsList: List<ProductDetails> ->
             // Process the result
             val d = prodDetailsList[0]
             Log.d("NOTEPAD", ": ${d}")
@@ -77,11 +97,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun launchPurchaseFlow(productDetails: ProductDetails) {
-        assert(productDetails.subscriptionOfferDetails != null)
         val productDetailsParamsList = ImmutableList.of(
             ProductDetailsParams.newBuilder()
                 .setProductDetails(productDetails)
-                .setOfferToken(productDetails.subscriptionOfferDetails!![0].offerToken)
                 .build()
         )
 
@@ -95,16 +113,17 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
     }
 
-    fun queryPurchase(){
+    fun queryPurchase() {
         billingClient!!.queryPurchasesAsync(
-            QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()
+            QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build()
         ) { billingResult: BillingResult, list: List<Purchase> ->
             Log.d("NOTEPAD", ": queryPurchasesAsync")
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 for (purchase in list) {
-                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
-                        Log.d("NOTEPAD", ": ${purchase} ")
-                    }
+                    Log.d("NOTEPAD", ": ${purchase} ")
+//                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
+//                        Log.d("NOTEPAD", ": ${purchase} ")
+//                    }
                 }
             }
         }
@@ -118,10 +137,11 @@ class MainActivity : AppCompatActivity() {
             .setPurchaseToken(purchases.purchaseToken)
             .build()
         billingClient!!.acknowledgePurchase(
-            acknowledgePurchaseParams) { billingResult: BillingResult ->
+            acknowledgePurchaseParams
+        ) { billingResult: BillingResult ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 Log.d("NOTEPAD", "verifySubPurchase")
-            }else{
+            } else {
                 Log.d("NOTEPAD", "false")
             }
         }
@@ -150,7 +170,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun queryPurchaseHistory(){
+    fun queryPurchaseHistory() {
         billingClient = BillingClient.newBuilder(this).enablePendingPurchases()
             .setListener { billingResult: BillingResult?, list: List<Purchase?>? -> }
             .build()
@@ -159,13 +179,13 @@ class MainActivity : AppCompatActivity() {
             override fun onBillingServiceDisconnected() {}
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                   finalBillingClient.queryPurchaseHistoryAsync(
-                       QueryPurchaseHistoryParams.newBuilder()
-                           .setProductType(BillingClient.ProductType.SUBS).build()
-                   ) { billingResult, purchaseHistoryRecordss ->
+                    finalBillingClient.queryPurchaseHistoryAsync(
+                        QueryPurchaseHistoryParams.newBuilder()
+                            .setProductType(BillingClient.ProductType.INAPP).build()
+                    ) { billingResult, purchaseHistoryRecordss ->
 
-                       Log.d("NOTEPAD", ": ${purchaseHistoryRecordss} ")
-                   }
+                        Log.d("NOTEPAD", ": ${purchaseHistoryRecordss} ")
+                    }
                 }
             }
         })
